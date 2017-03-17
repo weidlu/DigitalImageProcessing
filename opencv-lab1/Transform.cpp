@@ -135,11 +135,7 @@ Mat& LogImage(Mat& I,int ratio)
             p[j] = ratio * log((double)(p[j]+1));
             
         }
-    normalize(I, I, 1, 0, NORM_MINMAX, -1, noArray());
-    for ( j = 0; j < nCols; ++j)
-        {
-            p[j] = 255 * p[j];      
-        }
+ normalize(I, I, 0, 255, NORM_MINMAX, -1);
     
     return I;
 }
@@ -166,11 +162,7 @@ Mat& GammaImage(Mat& I,int gamma)
         {
             p[j] = (double)pow((double)p[j],(double)gamma);  
         }
-    normalize(I, I, 1, 0, NORM_MINMAX, -1);
-    for ( j = 0; j < nCols; ++j)
-        {
-            p[j] = 255 * p[j];      
-        }
+    normalize(I, I, 0, 255, NORM_MINMAX, -1);
     return I;
 }
 //彩色图像的补色变换
