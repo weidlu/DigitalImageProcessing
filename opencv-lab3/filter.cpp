@@ -67,6 +67,7 @@ int main(int argc, char** argv)
 			}
 			//laplasian
 			if(!strcmp(argv[3],"L")){
+			//int laplasian[3][3] = {-1,-1,-1,-1,8,-1,-1,-1,-1};
 			int laplasian[3][3] = {0,-1,0,-1,4,-1,0,-1,0};
 			Mat src_laplasian = laplasianFilter(src_g,3,laplasian);
 			namedWindow("laplasian",1);
@@ -91,16 +92,16 @@ int main(int argc, char** argv)
 			}
 			//Robert
 			if(!strcmp(argv[3],"R")){
-			int robert_y[3][3] = {-1,0,0,1};
-			int robert_x[3][3] = {0,-1,1,0};
-			Mat src_robert = changeableFilter(src_g,3,robert_x,robert_y);
+			int robert_y[3][3] = {0,0,0,0,-1,0,0,0,1};
+			int robert_x[3][3] = {0,0,0,0,0,-1,0,1,0};
+			Mat src_robert = changeableFilter(src_g,3,robert_y,robert_x);
 			namedWindow("robert",1);
 			imshow("robert",src_robert);
 			}
 			//sobel
 			if(!strcmp(argv[3],"S")){
-			int sobel_x[3][3] = {1,2,1,0,0,0,-1,-2,-1};
-			int sobel_y[3][3] = {1,0,-1,2,0,-2,1,0,1};
+			int sobel_y[3][3] = {-1,-2,-1,0,0,0,1,2,1};
+			int sobel_x[3][3] = {-1,0,1,-2,0,2,-1,0,1};
 			Mat src_sobel = changeableFilter(src_g,3,sobel_x,sobel_y);
 			namedWindow("sobel",1);
 			imshow("sobel",src_sobel);
@@ -170,8 +171,8 @@ int main(int argc, char** argv)
 			}
 			//sobel
 			if(!strcmp(argv[3],"S")){
-			int sobel_x[3][3] = {1,2,1,0,0,0,-1,-2,-1};
-			int sobel_y[3][3] = {1,0,-1,2,0,-2,1,0,1};
+			int sobel_y[3][3] = {-1,-2,-1,0,0,0,1,2,1};
+			int sobel_x[3][3] = {-1,0,1,-2,0,2,-1,0,1};
 			split_mat.at(0) = changeableFilter(imageBlue,3,sobel_x,sobel_y);
 			split_mat.at(1) = changeableFilter(imageGreen,3,sobel_x,sobel_y);
 			split_mat.at(2) = changeableFilter(imageRed,3,sobel_x,sobel_y);
@@ -328,7 +329,9 @@ Mat gussianFilter(Mat src, int moudelInt)
 			{
 				for(innerj1 = j1-controller;innerj1<=j1+controller;++innerj1)
 				{
-					average += (double)src_expand.at<uchar>(inneri1,innerj1)*model[inneri1%moudelInt][innerj1%moudelInt];
+					average += (double)src_expand.at<uchar>(inneri1,innerj1)*model[inneri1-i1+controller][innerj1-j1+controller];
+					//average += (double)src_expand.at<uchar>(inneri1,innerj1)*model[inneri1%moudelInt][innerj1%moudelInt];
+					//可以得到矩形状马赛克效果
 				}
 			}
 			src_clone.at<uchar>(i1-controller,j1-controller) = (int)average;
@@ -366,19 +369,23 @@ Mat laplasianFilter(Mat src,int moudelInt,int laplasian[][3])
 			{
 				for(innerj = j-controller;innerj<=j+controller;++innerj)
 				{
-					sum += src_expand.at<uchar>(inneri,innerj)*laplasian[inneri%3][innerj%3];
+					sum += src_expand.at<uchar>(inneri,innerj)*laplasian[inneri-i+1][innerj-j+1];//laplasian模板的处理
 				}
 			}
+			//注意数值溢出的判断和处理
+			if(sum<0){sum = 0;}
+			if(sum>255){sum = 255;}
 			src_clone.at<uchar>(i-controller,j-controller) += sum;
 			sum = 0;
 		}
 	}
+	//normalize(src_clone, src_clone, 0, 255, NORM_MINMAX, -1);
 	return src_clone;
 	
 }
 
 
-//单通道的Sobel锐化 
+//单通道的Sobel/Robert 边缘检测
 Mat changeableFilter(Mat src,int moudelInt,int changeable_x[][3],int changeable_y[][3])
 {
 	
@@ -402,17 +409,22 @@ Mat changeableFilter(Mat src,int moudelInt,int changeable_x[][3],int changeable_
 			//计算内部小矩阵
 			int sum1 = 0;
 			int sum2 = 0;
+			int sum3 = 0;
 			for(inneri = i-controller;inneri<=i+controller;++inneri)
 			{
 				for(innerj = j-controller;innerj<=j+controller;++innerj)
 				{
-					sum1 += src_expand.at<uchar>(inneri,innerj)*changeable_x[inneri%moudelInt][innerj%moudelInt];
-					sum2 += src_expand.at<uchar>(inneri,innerj)*changeable_y[inneri%moudelInt][innerj%moudelInt];
+					sum1 += src_expand.at<uchar>(inneri,innerj)*changeable_x[inneri-i+controller][innerj-j+controller];//这里的controller一直都是1 因为模板大小是固定的[3][3]
+					sum2 += src_expand.at<uchar>(inneri,innerj)*changeable_y[inneri-i+controller][innerj-j+controller];
 				}
 			}
-			src_clone.at<uchar>(i-controller,j-controller) = abs(sum1)+abs(sum2);
+			sum3 = abs(sum1)+abs(sum2);
+			if(sum3>255){sum3 = 255;}
+			if(sum3<0){sum3 = 0;}
+			src_clone.at<uchar>(i-controller,j-controller) = sum3;
 			sum1 = 0;
 			sum2 = 0;
+			sum3 = 0;
 		}
 	}
 	return src_clone;
