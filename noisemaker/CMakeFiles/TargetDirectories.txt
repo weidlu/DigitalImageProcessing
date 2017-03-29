@@ -1,0 +1,3 @@
+/home/gzr/opencv-workspace/noisemaker/CMakeFiles/rebuild_cache.dir
+/home/gzr/opencv-workspace/noisemaker/CMakeFiles/edit_cache.dir
+/home/gzr/opencv-workspace/noisemaker/CMakeFiles/Noise.dir
