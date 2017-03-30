@@ -17,7 +17,7 @@ void peppersalt(Mat src, int n);
 //胡椒噪声
 void pepper(Mat src, int n);
 //高斯噪声
-void AddGaussianNoise(Mat& I); 
+void AddGaussianNoise(Mat I, double ratio); 
 
 static void help()
 {
@@ -39,11 +39,7 @@ int main(int argc, char** argv)
 	help();
 	Mat src_g = imread(argv[2],0);//灰度图像
 	Mat src_color = imread(argv[2],1);
-	//灰度图像
-	salt(src_g,10000);
-	namedWindow("src_g",1);
-	imshow("src_g",src_g);
-	/*
+	//可以重写判断条件的逻辑，但是不想写了 就这么用吧
 		if(!strcmp(argv[1],"G")){//处理灰度图像
 			namedWindow("src_grey",1);
 			imshow("src_grey",src_g);
@@ -81,20 +77,20 @@ int main(int argc, char** argv)
 			imwrite("peppersalt.jpg",src_g);
 			}
 			
-			//gussian noise
-			if(!strcmp(argv[3],"gussianNoise")){
+			//gaussian noise
+			if(!strcmp(argv[3],"gaussianNoise")){
 			int num = 0;
 			stringstream s;
 			s << argv[4];
 			s >> num;
-			AddGaussianNoise(src_g);
+			AddGaussianNoise(src_g,num);
 			namedWindow("gussian-noise",1);
 			imshow("gussian-noise",src_g);
 			imwrite("gussianNoise.jpg",src_g);
 			}
 		}
-*/
-/*
+
+
 		if(!strcmp(argv[1],"C")){
 			namedWindow("src_color",1);
 			imshow("src_color",src_color);
@@ -131,8 +127,19 @@ int main(int argc, char** argv)
 			imshow("peppersalt",src_color);
 			imwrite("peppersaltcolor.jpg",src_color);
 			}
+			//gaussian noise
+			if(!strcmp(argv[3],"gaussianNoise")){
+			int num = 0;
+			stringstream s;
+			s << argv[4];
+			s >> num;
+			AddGaussianNoise(src_color,num);
+			namedWindow("gussian-noise",1);
+			imshow("gussian-noise",src_color);
+			imwrite("gussianNoiseC.jpg",src_color);
+			}
 		}
-	*/
+	
 	
 
 	waitKey(0);
@@ -144,27 +151,22 @@ int main(int argc, char** argv)
 void salt(Mat src, int n)
 {
 	if(!src.data){cout<<"读图失败！"<<endl;}
-	cout<<"进来没"<<endl;
 	int i = 0;
 	int ncols = src.cols;
 	int nrows = src.rows;
-	cout<<ncols<<","<<nrows<<endl;
 	for(i=0;i<n;++i)
 	{
-		cout<<"n"<<n<<endl;
-		
 		int x = rand()%ncols;
 		int y = rand()%nrows;
-		cout<<x<<","<<y<<endl;
 		if(src.channels()==1)
 		{
 			src.at<uchar>(y,x) = 255;
 		}
 		if(src.channels()==3)
 		{
-			src.at<Vec3d>(x,y)[0] = 255;
-			src.at<Vec3d>(x,y)[1] = 255;
-			src.at<Vec3d>(x,y)[2] = 255;
+			src.at<Vec3d>(y,x)[0] = 255;
+			src.at<Vec3d>(y,x)[1] = 255;
+			src.at<Vec3d>(y,x)[2] = 255;
 		}
 	}
 }
@@ -178,13 +180,13 @@ void peppersalt(Mat src, int n)
 		int y = rand()%src.rows;
 		if(src.channels()==1)
 		{
-			src.at<uchar>(x,y) = 0;
+			src.at<uchar>(y,x) = 0;
 		}
 		if(src.channels()==3)
 		{
-			src.at<Vec3d>(x,y)[0] = 0;
-			src.at<Vec3d>(x,y)[1] = 0;
-			src.at<Vec3d>(x,y)[2] = 0;
+			src.at<Vec3d>(y,x)[0] = 0;
+			src.at<Vec3d>(y,x)[1] = 0;
+			src.at<Vec3d>(y,x)[2] = 0;
 		}
 	}
 	
@@ -195,13 +197,13 @@ void peppersalt(Mat src, int n)
 		int y = rand()%src.rows;
 		if(src.channels()==1)
 		{
-			src.at<uchar>(x,y) = 255;
+			src.at<uchar>(y,x) = 255;
 		}
 		if(src.channels()==3)
 		{
-			src.at<Vec3d>(x,y)[0] = 255;
-			src.at<Vec3d>(x,y)[1] = 255;
-			src.at<Vec3d>(x,y)[2] = 255;
+			src.at<Vec3d>(y,x)[0] = 255;
+			src.at<Vec3d>(y,x)[1] = 255;
+			src.at<Vec3d>(y,x)[2] = 255;
 		}
 	}
 }
@@ -216,18 +218,18 @@ void pepper(Mat src, int n)
 		int y = rand()%src.rows;
 		if(src.channels()==1)
 		{
-			src.at<uchar>(x,y) = 0;
+			src.at<uchar>(y,x) = 0;
 		}
 		if(src.channels()==3)
 		{
-			src.at<Vec3d>(x,y)[0] = 0;
-			src.at<Vec3d>(x,y)[1] = 0;
-			src.at<Vec3d>(x,y)[2] = 0;
+			src.at<Vec3d>(y,x)[0] = 0;
+			src.at<Vec3d>(y,x)[1] = 0;
+			src.at<Vec3d>(y,x)[2] = 0;
 		}
 	}
 }
 //根据Box-Muller变换 高斯分布
-double generateGussian()
+double generateGaussian()
 {
 	static bool hasSpare = false;  
     	static double rand1, rand2;  
@@ -246,34 +248,63 @@ double generateGussian()
    	rand2 = (rand() / ((double) RAND_MAX)) * TWO_PI;  
    	return sqrt(rand1) * cos(rand2);  
 }
-
-void AddGaussianNoise(Mat& I)  
+//ratio 系数控制噪声污染程度
+void AddGaussianNoise(Mat src,double ratio)  
 {  
-  
-    CV_Assert(I.depth() != sizeof(uchar));  
-    int channels = I.channels();  
-    int nRows = I.rows;  
-    int nCols = I.cols * channels;  
-  
-    if(I.isContinuous()){  
-        nCols *= nRows;  
-        nRows = 1;  
-    }  
-  
-    int i,j;  
-    uchar* p;  
-    for(i = 0; i < nRows; ++i){  
-        p = I.ptr<uchar>(i);  
-        for(j = 0; j < nCols; ++j){  
-            double val = p[j] + generateGussian() * 128;  
-            if(val < 0)  
-                val = 0;  
-            if(val > 255)  
-                val = 255;  
-            p[j] = (uchar)val;  
-  
-        }  
-    }  
+	  
+	CV_Assert(src.depth() != sizeof(uchar));
+	int channels = src.channels();  
+        int nRows = src.rows;  
+        int nCols = src.cols * channels;
+	int i = 0;
+	int j = 0;
+	for(i=0;i<nRows;++i)
+	{
+	//cout<<"i"<<i<<endl;
+		for(j=0;j<nCols;++j)
+		{
+		if(channels==1){
+		//cout<<"j"<<j<<endl;
+			double val = src.at<uchar>(i,j) + generateGaussian() * ratio;
+			if(val < 0)  
+                	val = 0;  
+            		if(val > 255)  
+               		val = 255;  
+               		//cout<<"val"<<val<<endl;
+            		src.at<uchar>(i,j) = (uchar)val; 
+            		//int temp = src.at<uchar>(i,j);
+			//cout<<"val"<<temp<<endl;
+		}
+		if(channels==3)
+		{
+			double change = generateGaussian() * ratio;
+			//B
+			double val1 = src.at<Vec3b>(i,j)[0] + change;
+			if(val1 < 0)  
+                	val1 = 0;  
+            		if(val1 > 255)  
+               		val1 = 255;  
+            		src.at<Vec3b>(i,j)[0] = (uchar)val1; 
+            	
+            		//G
+            		double val2 = src.at<Vec3b>(i,j)[1] + change;
+			if(val2 < 0)  
+                	val2 = 0;  
+            		if(val2 > 255)  
+               		val2 = 255;  
+            		src.at<Vec3b>(i,j)[1] = (uchar)val2; 
+            		//R
+            		double val3 = src.at<Vec3b>(i,j)[2] + change;
+			if(val3 < 0)  
+                	val3 = 0;  
+            		if(val3 > 255)  
+               		val3 = 255;  
+            		src.at<Vec3b>(i,j)[2] = (uchar)val3; 
+            		
+		}
+	        }
+        }
+		
 }
 
 
