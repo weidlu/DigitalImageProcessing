@@ -69,12 +69,14 @@ int main(int argc, char** argv)
 			Mat src_geome = geometricFilter(src_g,num);
 			namedWindow("geometric",1);
 			imshow("geometric",src_geome);
+			imwrite("../geo.jpg",src_geome);
 			}
 			//谐波
 			if(!strcmp(argv[3],"har")){
 			Mat src_har = harmonicFilter(src_g,5);
 			namedWindow("harmonic",1);
 			imshow("harmonic",src_har);
+			imwrite("../har.jpg",src_har);
 			}
 			
 			//逆谐波 In_harmonicFilter(Mat src,int moudelInt,double Q); 
@@ -92,6 +94,7 @@ int main(int argc, char** argv)
 			Mat src_Inhar = In_harmonicFilter(src_g,moudel,Q);
 			namedWindow("inhar",1);
 			imshow("inhar",src_Inhar);
+			imwrite("../in_har.jpg",src_Inhar);
 			}
 			//中值滤波  medianFilter
 			if(!strcmp(argv[3],"median")){
@@ -102,6 +105,7 @@ int main(int argc, char** argv)
 			Mat src_median =  medianFilter(src_g,moudel);
 			namedWindow("median",1);
 			imshow("median",src_median);
+			imwrite("../median.jpg",src_median);
 			}
 			//自适应均值滤波 overall噪声的方差 Mat adaptiveMeanFilter(Mat src,int moudelInt,double overall);
 			if(!strcmp(argv[3],"adMean")){
@@ -116,6 +120,7 @@ int main(int argc, char** argv)
 			Mat src_adMean = adaptiveMeanFilter(src_g,moudel,overall);
 			namedWindow("adMean",1);
 			imshow("adMean",src_adMean);
+			imwrite("../adMean.jpg",src_adMean);
 			}
 			//自适应中值滤波 Mat adaptiveMedianFilter(Mat src,int moudelInt);
 			if(!strcmp(argv[3],"adMedian")){
@@ -126,6 +131,7 @@ int main(int argc, char** argv)
 			Mat src_adMedian = adaptiveMedianFilter(src_g,moudel);
 			namedWindow("adMedian",1);
 			imshow("adMedian",src_adMedian);
+			imwrite("../adMedian.jpg",src_adMedian);
 			}
 			
 			}
@@ -153,6 +159,7 @@ int main(int argc, char** argv)
 			merge(split_mat,mergeImage);
 			namedWindow("mean",1);
 			imshow("mean",mergeImage);
+			imwrite("../meancolor.jpg",mergeImage);
 			}
 			//几何均值
 			if(!strcmp(argv[3],"geo")){
@@ -166,6 +173,7 @@ int main(int argc, char** argv)
 			merge(split_mat,mergeImage);
 			namedWindow("geo",1);
 			imshow("geo",mergeImage);
+			imwrite("../geocolor.jpg",mergeImage);
 			}
 				
 			
@@ -285,7 +293,7 @@ Mat geometricFilter(Mat src,int moudelInt)
 			{
 				for(innerj = j-controller;innerj<=j+controller;++innerj)
 				{
-					sum *= pow(src_expand.at<uchar>(inneri,innerj),1.0/25.0);
+					sum *= pow(src_expand.at<uchar>(inneri,innerj),1.0/25.0);//这里的计算有丢失 结果全部是0
 				}
 			}
 			src_clone.at<uchar>(i-controller,j-controller) = sum;
@@ -411,12 +419,12 @@ Mat medianFilter(Mat src,int moudelInt)
 			{
 				for(innerj = j-controller;innerj<=j+controller;++innerj)
 				{	
-					cout<<"inneri:i"<<inneri<<":"<<i<<"innerj:j"<<innerj<<":"<<j<<endl;
+					
 					row = inneri-i+controller;
 					col = innerj-j+controller;
-					cout<<"row:"<<row<<"col:"<<col<<endl;
+					
 					int temp = src_expand.at<uchar>(inneri,innerj);
-					cout<<"a[i]"<<row*moudelInt+col<<"value"<<temp<<endl;
+					
 					
 					array[row*moudelInt+col] = src_expand.at<uchar>(inneri,innerj);	//将矩阵放入数组
 				}
@@ -582,7 +590,7 @@ Mat adaptiveMedianFilter(Mat src,int moudelInt)
 			}else if(windowSize<=5){
 			//cout<<"中值不在min和max之间"<<endl;
 			    
-				cout<<"窗口增大"<<endl;
+				//窗口增大
 		                windowSize=windowSize+2;
 				goto dy_expand;
 
