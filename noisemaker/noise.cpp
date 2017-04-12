@@ -49,7 +49,7 @@ int main(int argc, char** argv)
 			stringstream s;
 			s << argv[4];
 			s >> num;
-			salt(src_g,num);
+			salt(src_g,num);//
 			namedWindow("src_g",1);
 			imshow("src_g",src_g);
 			imwrite("saltnoise.jpg",src_g);
